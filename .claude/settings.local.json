@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh repo:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(wc -l /Users/tm/reservations/Skinstudio/salon-system/src/components/*.jsx /Users/tm/reservations/Skinstudio/salon-system/src/components/admin/*.jsx /Users/tm/reservations/Skinstudio/salon-system/src/*.jsx)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
