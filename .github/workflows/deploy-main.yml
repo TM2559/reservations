@@ -26,6 +26,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate required deploy secrets
+        env:
+          FIREBASE_SERVICE_ACCOUNT_TM_RESERVATIONS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TM_RESERVATIONS }}
+        run: |
+          if [ -z "${FIREBASE_SERVICE_ACCOUNT_TM_RESERVATIONS}" ]; then
+            echo "::error::Missing secret FIREBASE_SERVICE_ACCOUNT_TM_RESERVATIONS. Add it in GitHub Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+          # Basic sanity check to catch accidentally empty/invalid JSON values.
+          echo "${FIREBASE_SERVICE_ACCOUNT_TM_RESERVATIONS}" | jq -e '.type=="service_account" and .client_email and .private_key' >/dev/null || {
+            echo "::error::Secret FIREBASE_SERVICE_ACCOUNT_TM_RESERVATIONS is not valid service account JSON."
+            exit 1
+          }
+
       - name: Install and Build
         working-directory: Skinstudio/salon-system
         run: npm ci && npm run build
@@ -56,5 +70,10 @@ jobs:
         run: npx firebase-tools deploy --only hosting --project tm-reservations --non-interactive
 
       - name: Deploy Functions
+        if: ${{ vars.DEPLOY_FUNCTIONS == 'true' }}
         working-directory: Skinstudio/salon-system
         run: npx firebase-tools deploy --only functions --project tm-reservations --non-interactive
+
+      - name: Functions deploy skipped
+        if: ${{ vars.DEPLOY_FUNCTIONS != 'true' }}
+        run: echo "Functions deploy skipped. Set repo variable DEPLOY_FUNCTIONS=true to enable."
