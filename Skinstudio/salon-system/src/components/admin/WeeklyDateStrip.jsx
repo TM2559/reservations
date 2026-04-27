@@ -10,17 +10,6 @@ const MONTH_NAMES = [
   'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec',
 ];
 
-const addMonthsISO = (iso, delta) => {
-  if (!iso || typeof iso !== 'string') return iso;
-  const parts = iso.split('-').map(Number);
-  if (parts.length !== 3 || parts.some(Number.isNaN)) return iso;
-  const [y, m, d] = parts;
-  const date = new Date(y, m - 1, d);
-  date.setMonth(date.getMonth() + delta);
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-};
-
 /**
  * Horizontálně scrollovatelný pruh dní s vizualizací počtu rezervací.
  * Aktivní den = adminDateInput (ISO). Šipky mění měsíc; kalendář (label) pro libovolné datum.
@@ -41,7 +30,7 @@ const WeeklyDateStrip = ({ adminDateInput, setAdminDateInput, reservations, sche
       dates.push({
         dateKey,
         iso: Utils.getISOFromDateKey(dateKey),
-        dayNum: dObj.getDate(),
+        dayNum: d.getDate(),
         dayShort: Utils.getDayOfWeekShort(dateKey),
       });
     }
@@ -56,7 +45,7 @@ const WeeklyDateStrip = ({ adminDateInput, setAdminDateInput, reservations, sche
     });
 
     return { dates, countByDate, shiftByDate };
-  }, [adminDateInput, reservations, schedule, todayIso]);
+  }, [adminDateInput, reservations, schedule]);
 
   const activeLabel = Utils.formatDateWithDayLong(activeDateKey);
 

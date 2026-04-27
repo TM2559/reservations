@@ -5,7 +5,7 @@ import ReservationList from './ReservationList';
 import WeeklyDateStrip from './WeeklyDateStrip';
 import DailyView from './daily/DailyView';
 import DailyDigest from './daily/DailyDigest';
-import ChronologicalSchedule from './daily/ChronologicalSchedule';
+import DailyScheduleView from './AdminDailySchedule/DailyScheduleView';
 import { normalizeDayScheduleToShift } from './daily/calculateTimelineSegments';
 
 const ADMIN_BOOKINGS_DATE_INPUT_ID = 'admin-bookings-date-picker';
@@ -28,7 +28,7 @@ const AdminBookingsTab = ({
   isGlobalSearchMode,
 }) => {
   const dateInputRef = useRef(null);
-  const [viewMode, setViewMode] = useState('future');
+  const [viewMode, setViewMode] = useState('day');
   const dateKey = Utils.getDateKeyFromISO(adminDateInput);
   const safeSchedule = schedule == null ? {} : schedule;
   const daySchedule = safeSchedule[dateKey];
@@ -251,16 +251,6 @@ const AdminBookingsTab = ({
                   (() => {
                     const day = safeSchedule?.[res.date];
                     const hasShift = !!(day && (day.periods?.length > 0 || day.start));
-                    const periods = hasShift
-                      ? (day.periods?.length > 0 ? day.periods : [{ start: day.start, end: day.end }])
-                      : [];
-                    const start = Utils.timeToMinutes(res.time);
-                    const end = start + (Number(res.duration) > 0 ? Number(res.duration) : 60);
-                    const overlapsShift = periods.some((p) => {
-                      const pStart = Utils.timeToMinutes(p.start);
-                      const pEnd = Utils.timeToMinutes(p.end);
-                      return start < pEnd && end > pStart;
-                    });
                     const showNoShiftNote = !hasShift;
 
                     return (
@@ -384,12 +374,15 @@ const AdminBookingsTab = ({
     ) : shift ? (
       <DailyView date={adminDateInput}>
         <DailyDigest shift={shift} reservations={dailyReservations} />
-        <ChronologicalSchedule
+        <DailyScheduleView
+          date={adminDateInput}
           shift={shift}
           reservations={dailyReservations}
-          onSelectOrder={onSelectOrder}
-          todayKey={todayKey}
-          onAvailableSlotClick={(slot) => onManualBookingFromSlot(adminDateInput, slot)}
+          onAppointmentClick={(appointmentId) => {
+            const reservation = dailyReservations.find((res) => String(res.id) === appointmentId);
+            if (reservation) onSelectOrder(reservation);
+          }}
+          onFreeSlotClick={(slot) => onManualBookingFromSlot(adminDateInput, slot)}
         />
       </DailyView>
     ) : dailyReservations.length > 0 ? (
